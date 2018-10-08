@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/public.css">
+    <script src="./js/jquery.min.1.10.2.js"></script>
+    <script src="./js/index.js"></script>
+</head>
+
+<body>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: #000;
+        overflow: hidden;
+    }
+
+    #perspective {
+        perspective: 800px;
+    }
+
+    #wrap {
+        width: 120px;
+        /*133:200  4:6  */
+        height: 180px;
+        margin: 0 auto;
+        position: relative;
+        /*搭建3D效果必须的两个属性：一个变换风格变3d，一个场景景深800px*/
+        transform-style: preserve-3d;
+        transform: rotateX(-10deg) rotateY(0deg);
+    }
+
+    #wrap img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        border-radius: 1px;
+        transform: rotateY(0deg) translateZ(0px);
+        /*倒影：朝向 偏移 遮盖*/
+        /*线性渐变(从哪里开始,开始时候的颜色,结束时候的颜色)*/
+        -webkit-box-reflect: below 5px -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5));
+    }
+
+    #wrap p {
+        width: 1200px;
+        height: 1200px;
+        background: -webkit-radial-gradient(center center, 600px 600px, rgba(244, 23, 234, 0.2), rgba(0, 0, 0, 0));
+        border-radius: 100%;
+        position: absolute;
+        left: 50%;
+        top: 102%;
+        margin-left: -600px;
+        margin-top: -600px;
+        transform: rotateX(90deg);
+    }
+    </style>
+    <div id="perspective">
+        <div id="wrap">
+            <!--  transition: transform 1s 0.9s -->
+            <img src="./images/1.png">
+            <img src="./images/2.png">
+            <img src="./images/3.png">
+            <img src="./images/4.png">
+            <img src="./images/5.png">
+            <img src="./images/6.png">
+            <img src="./images/1.png">
+            <img src="./images/2.png">
+            <img src="./images/3.png">
+            <img src="./images/4.png">
+            <img src="./images/5.png">
+            <p></p>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+window.onload = function() {
+    var oWrap = document.getElementById('wrap');
+    var nowX, nowY, lastX, lastY, minusX = 0,
+        minusY = 0;
+    var roY = 0,
+        roX = -10;
+    var timer;
+
+    function mTop() {
+        var wH = $(document).height();
+        $("#wrap").css("marginTop", wH / 2 - 180 + 'px');
+    }
+    mTop();
+    $(document).ready(function() {
+        imglength = $('#wrap img').length;
+        deg = 360 / imglength;
+        console.log(imglength)
+        for (i = 0; i < imglength; i++) {
+            $("#wrap img").eq(i).css("transform", "rotateY(" + deg * i + "deg" + ") translateZ(350px)");
+            $("#wrap img").eq(i).css("transition", "transform 1s " + (imglength - 1 - i) * 0.1 + "s");
+        }
+    });
+    document.onmousedown = function(ev) {
+        ev = ev || window.event;
+        //鼠标按下的时候，给前一点坐标赋值，为了避免第一次相减的时候出错
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+
+        //移动
+        this.onmousemove = function(ev) {
+            ev = ev || window.event;
+            console.log(timer)
+            clearInterval(timer);
+
+            nowX = ev.clientX; // clientX 鼠标距离页面左边的距离
+            nowY = ev.clientY; // clientY ………………………………顶部………………
+
+            //当前坐标和前一点坐标差值
+            minusX = nowX - lastX;
+            minusY = nowY - lastY;
+
+            //更新wrap的旋转角度，拖拽越快-> minus变化大 -> roY变化大 -> 旋转快
+            roY += minusX * 0.2; // roY = roY + minusX*0.2;
+            roX -= minusY * 0.1;
+            console.log(minusX, minusY)
+            oWrap.style.transform = 'rotateX(' + roX + 'deg) rotateY(' + roY + 'deg)';
+            //前一点的坐标
+            lastX = nowX;
+            lastY = nowY;
+            console.log(lastX, lastY)
+
+        }
+        //抬起
+        this.onmouseup = function(event) {
+            event = event || window.event;
+            this.onmousemove = null;
+            timer = setInterval(function() {
+                minusX *= 0.95;
+                minusY *= 0.95;
+                roY += minusX * 0.2; // roY = roY + minusX*0.2;
+                roX -= minusY * 0.1;
+                // console.log(roY,roX)
+                oWrap.style.transform = 'rotateX(' + roX + 'deg) rotateY(' + roY + 'deg)';
+
+                if (Math.abs(minusX) < 0.1 && Math.abs(minusY) < 0.1) {
+                    clearInterval(timer);
+                }
+                // console.log( roX,roY );
+            }, 13);
+        }
+        return false
+    }
+}
+</script>
